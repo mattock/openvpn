@@ -1,3 +1,4 @@
+dnl comment
 dnl -- The following is base of curl's acinclude.m4 --
 dnl Check for socklen_t: historically on BSD it is an int, and in
 dnl POSIX 1g it is a type of its own, but some platforms use different
