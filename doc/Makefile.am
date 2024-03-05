@@ -8,6 +8,7 @@
 #  Copyright (C) 2002-2023 OpenVPN Inc <sales@openvpn.net>
 #  Copyright (C) 2006-2012 Alon Bar-Lev <alon.barlev@gmail.com>
 #
+# Another comment
 # Add comment to trigger build
 SUBDIRS = doxygen
 
