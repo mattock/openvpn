@@ -1,6 +1,8 @@
 CONTRIBUTING TO THE OPENVPN PROJECT
 ===================================
 
+Add change
+
 Patches should be written against the Git "master" branch. Some patches may get
 backported to a release branch.
 
