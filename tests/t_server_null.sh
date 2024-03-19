@@ -8,7 +8,7 @@ else
         echo "ERROR: $0: not running as root and sudo not found!"
         exit 1
     fi
-    sudo_cmd=$sudo_cmd
+    sudo_cmd="${sudo_cmd} -b"
 fi
 
 srcdir="${srcdir:-.}"
@@ -22,7 +22,7 @@ if [ $? -eq 0 ]; then
     exit 1
 fi
 
-sudo -b "${srcdir}/t_server_null_server.sh"
+$sudo_cmd "${srcdir}/t_server_null_server.sh"
 
 "${srcdir}/t_server_null_client.sh"
 
