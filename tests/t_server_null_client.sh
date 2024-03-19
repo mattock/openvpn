@@ -2,6 +2,7 @@
 
 do_client_test() {
     test_name=$1
+    should_pass=$2
 
     "${openvpn}" \
         $client_base_opts \
@@ -13,10 +14,17 @@ do_client_test() {
         $client_script_opts
 
     grep "Initialization Sequence Completed" "${log}" > /dev/null
+    exit_code=$?
 
-    if [ $? -eq 0 ]; then
+    if [ $exit_code -eq 0 ] && [ $should_pass -eq 0 ]; then
         echo "PASS ${test_name}"
-    else
+    elif [ $exit_code -eq 1 ] && [ $should_pass -ne 0 ]; then
+        echo "PASS ${test_name} (test failure)"
+    elif [ $exit_code -eq 0 ] && [ $should_pass -ne 0 ]; then
+        echo "FAIL ${test_name} (test failure)"
+        cat "${log}"
+        retval=1
+    elif [ $exit_code -eq 1 ] && [ $should_pass -eq 0 ]; then
         echo "FAIL ${test_name}"
         cat "${log}"
         retval=1
@@ -52,15 +60,18 @@ current_openvpn=$openvpn
 
 openvpn=$current_openvpn
 client_remote_opts="--remote 127.0.0.1 1194 udp --remote-cert-tls server"
-do_client_test t_server_null_client.sh-openvpn_current
+should_succeed=0
+do_client_test t_server_null_client.sh-openvpn_current $should_succeed
 
 # Test for failure
-#openvpn=$current_openvpn
-#client_remote_opts="--remote 127.0.0.1 1195 udp --remote-cert-tls server"
-#do_client_test t_server_null_client.sh-openvpn_current_fail
+openvpn=$current_openvpn
+client_remote_opts="--remote 127.0.0.1 1195 udp --remote-cert-tls server"
+should_succeed=1
+do_client_test t_server_null_client.sh-openvpn_current_fail $should_succeed
 
 openvpn="/usr/sbin/openvpn"
 client_remote_opts="--remote 127.0.0.1 1194 udp --remote-cert-tls server"
-do_client_test t_server_null_client.sh-openvpn_2_6_8
+should_succeed=0
+do_client_test t_server_null_client.sh-openvpn_2_6_8 $should_succeed
 
 exit $retval
