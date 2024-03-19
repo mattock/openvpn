@@ -48,7 +48,7 @@ $sudo_cmd $openvpn \
 
 # Wait until no clients are connected anymore, then exit
 count=0
-while [ $count -lt 5 ]; do
+while [ $count -lt 10 ]; do
     if $sudo_cmd grep -q "${client_match}" "${status_file}"; then
 	count=0
 	sleep 1
