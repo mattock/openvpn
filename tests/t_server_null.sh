@@ -1,6 +1,14 @@
 #!/bin/sh
 #
-. ./t_server_null.vars
+srcdir="${srcdir:-.}"
+top_builddir="${top_builddir:-..}"
+openvpn="${openvpn:-${top_builddir}/src/openvpn/openvpn}"
+sample_keys="${sample_keys:-${top_builddir}/sample/sample-keys}"
+ca="${ca:-${sample_keys}/ca.crt}"
+dh="${dh:-${sample_keys}/dh2048.pem}"
+server_cert="${server_cert:-${sample_keys}/server.crt}"
+server_key="${server_key:-${sample_keys}/server.key}"
+ta="${ta:-${sample_keys}/ta.key}"
 
 "${openvpn}" \
     --local 127.0.0.1 \
