@@ -29,7 +29,7 @@ ta="${ta:-${sample_keys}/ta.key}"
     --verb 3 \
     --explicit-exit-notify 3 &
 
-SERVER_PID=$!
+server_pid=$!
 
 sleep 600
-kill $SERVER_PID
+kill $server_pid
