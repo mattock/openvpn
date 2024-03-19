@@ -15,9 +15,9 @@ do_client_test() {
     grep "Initialization Sequence Completed" "${log}" > /dev/null
 
     if [ $? -eq 0 ]; then
-        echo "PASS: ${test_name}"
+        echo "PASS ${test_name}"
     else
-        echo "FAIL: ${test_name}"
+        echo "FAIL ${test_name}"
         cat "${log}"
         retval=1
     fi
@@ -52,18 +52,15 @@ current_openvpn=$openvpn
 
 openvpn=$current_openvpn
 client_remote_opts="--remote 127.0.0.1 1194 udp --remote-cert-tls server"
-do_client_test pass_current_openvpn
+do_client_test t_server_null_client.sh-openvpn_current
 
+# Test for failure
 #openvpn=$current_openvpn
 #client_remote_opts="--remote 127.0.0.1 1195 udp --remote-cert-tls server"
-#do_client_test fail_current_openvpn
+#do_client_test t_server_null_client.sh-openvpn_current_fail
 
 openvpn="/usr/sbin/openvpn"
 client_remote_opts="--remote 127.0.0.1 1194 udp --remote-cert-tls server"
-do_client_test pass_2_6_8_openvpn
-
-#openvpn=$current_openvpn
-#client_remote_opts="--remote 127.0.0.1 1195 udp --remote-cert-tls server"
-#do_client_test fail_current_openvpn_2
+do_client_test t_server_null_client.sh-openvpn_2_6_8
 
 exit $retval
