@@ -1,5 +1,16 @@
 #!/bin/sh
 #
+if [ `id -un` == "root" ]; then
+    sudo_cmd=""
+else
+    sudo_cmd=`which sudo`
+    if [ $? -ne 0 ]; then
+        echo "ERROR: $0: not running as root and sudo not found!"
+        exit 1
+    fi
+    sudo_cmd=$sudo_cmd
+fi
+
 srcdir="${srcdir:-.}"
 top_builddir="${top_builddir:-..}"
 openvpn="${openvpn:-${top_builddir}/src/openvpn/openvpn}"
@@ -9,10 +20,12 @@ dh="${dh:-${sample_keys}/dh2048.pem}"
 server_cert="${server_cert:-${sample_keys}/server.crt}"
 server_key="${server_key:-${sample_keys}/server.key}"
 ta="${ta:-${sample_keys}/ta.key}"
-status_file="${status_file:-${srcdir}/t_server_null-status}"
+status_file="${status_file:-${srcdir}/t_server_null.status}"
+pid_file="${pid_file:-${srcdir}/t_server_null.pid}"
 client_match="${client_match:-Test-Client}"
 
-"${openvpn}" \
+$sudo_cmd $openvpn \
+    --daemon \
     --local 127.0.0.1 \
     --lport 1194 \
     --proto udp \
@@ -29,15 +42,14 @@ client_match="${client_match:-Test-Client}"
     --max-clients 1 \
     --persist-tun \
     --verb 3 \
-    --status ${status_file} 1 \
-    --explicit-exit-notify 3 &
-
-server_pid=$!
+    --status "${status_file}" 1 \
+    --writepid "${pid_file}" \
+    --explicit-exit-notify 3
 
 # Wait until no clients are connected anymore, then exit
 count=0
 while [ $count -lt 5 ]; do
-    if grep -q "${client_match}" "${status_file}"; then
+    if $sudo_cmd grep -q "${client_match}" "${status_file}"; then
 	count=0
 	sleep 1
         continue
@@ -48,4 +60,4 @@ while [ $count -lt 5 ]; do
     fi
 done
 
-kill $server_pid
+$sudo_cmd kill `cat $pid_file`
