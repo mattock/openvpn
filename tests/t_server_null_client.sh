@@ -25,9 +25,18 @@ do_client_test() {
     rm -f "${log}"
 }
 
-. ./t_server_null.vars
-
-log="./test-client.log"
+srcdir="${srcdir:-.}"
+top_builddir="${top_builddir:-..}"
+openvpn="${openvpn:-${top_builddir}/src/openvpn/openvpn}"
+sample_keys="${sample_keys:-${top_builddir}/sample/sample-keys}"
+ca="${ca:-${sample_keys}/ca.crt}"
+dh="${dh:-${sample_keys}/dh2048.pem}"
+server_cert="${server_cert:-${sample_keys}/server.crt}"
+server_key="${server_key:-${sample_keys}/server.key}"
+client_cert="${client_cert:-${sample_keys}/client.crt}"
+client_key="${client_key:-${sample_keys}/client.key}"
+ta="${ta:-${sample_keys}/ta.key}"
+log="${log:-${srcdir}/test-client.log}"
 
 rm -f "${log}"
 
