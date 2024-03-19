@@ -17,7 +17,8 @@ SUBDIRS = unit_tests
 AM_TESTSUITE_SUMMARY_HEADER = ' for $(PACKAGE_STRING) System Tests'
 
 if !WIN32
-test_scripts = t_client.sh t_lpback.sh t_cltsrv.sh
+test_scripts = t_client.sh t_lpback.sh t_cltsrv.sh t_server_null_client.sh
+#test_scripts = t_server_null_client.sh
 
 check_PROGRAMS = ntlm_support
 if HAVE_SITNL
@@ -33,6 +34,9 @@ dist_noinst_SCRIPTS = \
 	t_cltsrv-down.sh \
 	t_lpback.sh \
 	t_net.sh \
+	t_server_null.sh \
+	t_server_null.vars \
+	t_server_null_client.sh \
 	update_t_client_ips.sh
 
 dist_noinst_DATA = \
