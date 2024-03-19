@@ -61,3 +61,6 @@ while [ $count -lt 5 ]; do
 done
 
 $sudo_cmd kill `cat $pid_file`
+
+test -f $pid_file && ${sudo_cmd} rm -f $pid_file
+test -f $status_file && ${sudo_cmd} rm -f $status_file
