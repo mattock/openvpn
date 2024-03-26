@@ -38,15 +38,15 @@ get_client_test_result() {
     grep "Initialization Sequence Completed" "${l_log}" > /dev/null
     local l_exit_code=$?
 
-    if [ $l_exit_code -eq 0 ] && [ $l_should_pass -eq 0 ]; then
+    if [ $l_exit_code -eq 0 ] && [ "${l_should_pass}" = "yes" ]; then
         echo "PASS ${l_test_name}"
-    elif [ $l_exit_code -eq 1 ] && [ $l_should_pass -ne 0 ]; then
+    elif [ $l_exit_code -eq 1 ] && [ "${l_should_pass}" = "no" ]; then
         echo "PASS ${l_test_name} (test failure)"
-    elif [ $l_exit_code -eq 0 ] && [ $l_should_pass -ne 0 ]; then
+    elif [ $l_exit_code -eq 0 ] && [ "${l_should_pass}" = "no" ]; then
         echo "FAIL ${l_test_name} (test failure)"
         cat "${l_log}"
         retval=1
-    elif [ $l_exit_code -eq 1 ] && [ $l_should_pass -eq 0 ]; then
+    elif [ $l_exit_code -eq 1 ] && [ "${l_should_pass}" = "yes" ]; then
         echo "FAIL ${l_test_name}"
         cat "${l_log}"
         retval=1
@@ -137,23 +137,23 @@ done
 
 # Check test results
 test_name="t_server_null_client.sh-openvpn_current_udp"
-should_pass=0
+should_pass="yes"
 get_client_test_result "${test_name}" $should_pass
 
 test_name="t_server_null_client.sh-openvpn_current_tcp"
-should_pass=0
+should_pass="yes"
 get_client_test_result "${test_name}" $should_pass
 
 test_name="t_server_null_client.sh-openvpn_current_udp_fail"
-should_pass=1
+should_pass="no"
 get_client_test_result "${test_name}" $should_pass
 
 test_name="t_server_null_client.sh-openvpn_2_6_8_udp"
-should_pass=0
+should_pass="yes"
 get_client_test_result "${test_name}" $should_pass
 
 test_name="t_server_null_client.sh-openvpn_2_6_8_tcp"
-should_pass=0
+should_pass="yes"
 get_client_test_result "${test_name}" $should_pass
 
 exit $retval
