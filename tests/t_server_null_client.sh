@@ -1,7 +1,6 @@
 #!/bin/bash
 
 launch_client() {
-
     local l_test_name=$1
     local l_log="${l_test_name}.log"
     local l_pid="${l_test_name}.pid"
@@ -28,6 +27,29 @@ launch_client() {
         --writepid "${l_pid}" \
         --setenv l_pid $l_pid \
         --log "${l_log}" &
+}
+
+wait_for_results() {
+    # Wait until tests have finished
+    tests_running="yes"
+
+    # Wait until at least one OpenVPN client process has started an created its
+    # pidfile to prevent exiting prematurely
+    sleep 1
+
+    while [ "${tests_running}" == "yes" ]; do
+        tests_running="no"
+        for t in $test_names; do
+            if [ -f "${t}.pid" ]; then
+                tests_running="yes"
+            fi
+        done
+
+        if [ "${tests_running}" == "yes" ]; then
+            echo "Waiting 1 second for tests to finish"
+            sleep 1
+        fi
+    done
 }
 
 get_client_test_result() {
@@ -113,27 +135,8 @@ client_remote_opts="--remote 127.0.0.1 11194 udp"
 client_proto_opts="--proto udp"
 launch_client "${test_name}"
 
-
-# Wait until tests have finished
-tests_running="yes"
-
-# Wait until all OpenVPN client processes have started up and created their
-# pidfiles
-sleep 1
-
-while [ "${tests_running}" == "yes" ]; do
-    tests_running="no"
-    for t in $test_names; do
-        if [ -f "${t}.pid" ]; then
-            tests_running="yes"
-        fi
-    done
-
-    if [ "${tests_running}" == "yes" ]; then
-        echo "Waiting 1 second for tests to finish"
-	sleep 1
-    fi
-done
+# Wait until all OpenVPN clients have exited
+wait_for_results
 
 # Check test results
 test_name="t_server_null_client.sh-openvpn_current_udp"
