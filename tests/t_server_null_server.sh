@@ -12,12 +12,14 @@ ta="${ta:-${sample_keys}/ta.key}"
 status_file="${status_file:-${srcdir}/t_server_null_server.status}"
 pid_file="${pid_file:-${srcdir}/t_server_null_server.pid}"
 client_match="${client_match:-Test-Client}"
+proto="${proto:-udp}"
+lport="${lport:-1194}"
 
 "${openvpn}" \
     --daemon \
     --local 127.0.0.1 \
-    --lport 1194 \
-    --proto udp \
+    --lport "${lport}" \
+    --proto "${proto}" \
     --dev tun \
     --ca "${ca}" \
     --dh "${dh}" \
