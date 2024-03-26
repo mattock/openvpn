@@ -9,6 +9,9 @@ dh="${dh:-${sample_keys}/dh2048.pem}"
 server_cert="${server_cert:-${sample_keys}/server.crt}"
 server_key="${server_key:-${sample_keys}/server.key}"
 ta="${ta:-${sample_keys}/ta.key}"
+max_clients="${max_clients:-10}"
+
+# Settings that change between server setups
 status_file="${status_file:-${srcdir}/t_server_null_server.status}"
 pid_file="${pid_file:-${srcdir}/t_server_null_server.pid}"
 client_match="${client_match:-Test-Client}"
@@ -30,7 +33,7 @@ lport="${lport:-1194}"
     --server 10.29.41.0 255.255.255.0 \
     --keepalive 10 120 \
     --cipher AES-256-CBC \
-    --max-clients 1 \
+    --max-clients $max_clients \
     --persist-tun \
     --verb 3 \
     --status "${status_file}" 1 \
