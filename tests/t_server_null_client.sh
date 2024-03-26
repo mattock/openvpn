@@ -88,7 +88,7 @@ launch_client "${test_name}"
 test_name="t_server_null_client.sh-openvpn_current_fail"
 test_names="${test_names} ${test_name}"
 openvpn=$current_openvpn
-client_remote_opts="--remote 127.0.0.1 1195 udp"
+client_remote_opts="--remote 127.0.0.1 11194 udp"
 client_proto_opts="--proto udp"
 launch_client "${test_name}"
 

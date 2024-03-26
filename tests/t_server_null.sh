@@ -8,21 +8,24 @@ else
         echo "ERROR: $0: not running as root and sudo not found!"
         exit 1
     fi
-    sudo_cmd="${sudo_cmd} -b"
+    sudo_cmd="${sudo_cmd} -E -b"
 fi
 
 srcdir="${srcdir:-.}"
-server_pid_file="${pid_file:-${srcdir}/t_server_null_server.pid}"
 
-# Do not start if the test server is running already - something that should never
-# happen in circumstances.
-pgrep -F "${server_pid_file}" > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    echo "ERROR: already running --dev null test server needs to be killed manually!"
-    exit 1
-fi
-
+export server_id="t_server_null_server-1194_udp"
+export lport="1194"
+export proto="udp"
 $sudo_cmd "${srcdir}/t_server_null_server.sh"
+
+export server_id="t_server_null_server-1195_tcp"
+export lport="1195"
+export proto="tcp"
+$sudo_cmd "${srcdir}/t_server_null_server.sh"
+
+unset server_id
+unset lport
+unset proto
 
 "${srcdir}/t_server_null_client.sh"
 

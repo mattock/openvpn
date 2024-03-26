@@ -1,5 +1,10 @@
 #!/bin/sh
 #
+if [ "${server_id}" = "" ]; then
+    echo "ERROR: server_id environment variable must be defined!"
+    exit 1
+fi
+
 srcdir="${srcdir:-.}"
 top_builddir="${top_builddir:-..}"
 openvpn="${openvpn:-${top_builddir}/src/openvpn/openvpn}"
@@ -12,8 +17,8 @@ ta="${ta:-${sample_keys}/ta.key}"
 max_clients="${max_clients:-10}"
 
 # Settings that change between server setups
-status_file="${status_file:-${srcdir}/t_server_null_server.status}"
-pid_file="${pid_file:-${srcdir}/t_server_null_server.pid}"
+status_file="${status_file:-${srcdir}/${server_id}.status}"
+pid_file="${pid_file:-${srcdir}/${server_id}.pid}"
 client_match="${client_match:-Test-Client}"
 proto="${proto:-udp}"
 lport="${lport:-1194}"
