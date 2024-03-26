@@ -78,26 +78,41 @@ current_openvpn=$openvpn
 test_names=""
 
 # Launch OpenVPN clients in parallel
-test_name="t_server_null_client.sh-openvpn_current"
+test_name="t_server_null_client.sh-openvpn_current_udp"
 test_names="${test_names} ${test_name}"
 openvpn=$current_openvpn
 client_remote_opts="--remote 127.0.0.1 1194 udp"
 client_proto_opts="--proto udp"
 launch_client "${test_name}"
 
-test_name="t_server_null_client.sh-openvpn_current_fail"
+test_name="t_server_null_client.sh-openvpn_current_tcp"
+test_names="${test_names} ${test_name}"
+openvpn="/usr/sbin/openvpn"
+client_remote_opts="--remote 127.0.0.1 1195 tcp"
+client_proto_opts="--proto tcp"
+launch_client "${test_name}"
+
+test_name="t_server_null_client.sh-openvpn_2_6_8_udp"
+test_names="${test_names} ${test_name}"
+openvpn="/usr/sbin/openvpn"
+client_remote_opts="--remote 127.0.0.1 1194 udp"
+client_proto_opts="--proto udp"
+launch_client "${test_name}"
+
+test_name="t_server_null_client.sh-openvpn_2_6_8_tcp"
+test_names="${test_names} ${test_name}"
+openvpn="/usr/sbin/openvpn"
+client_remote_opts="--remote 127.0.0.1 1195 tcp"
+client_proto_opts="--proto tcp"
+launch_client "${test_name}"
+
+test_name="t_server_null_client.sh-openvpn_current_udp_fail"
 test_names="${test_names} ${test_name}"
 openvpn=$current_openvpn
 client_remote_opts="--remote 127.0.0.1 11194 udp"
 client_proto_opts="--proto udp"
 launch_client "${test_name}"
 
-test_name="t_server_null_client.sh-openvpn_2_6_8"
-test_names="${test_names} ${test_name}"
-openvpn="/usr/sbin/openvpn"
-client_remote_opts="--remote 127.0.0.1 1194 udp"
-client_proto_opts="--proto udp"
-launch_client "${test_name}"
 
 # Wait until tests have finished
 tests_running="yes"
@@ -121,15 +136,23 @@ while [ "${tests_running}" == "yes" ]; do
 done
 
 # Check test results
-test_name="t_server_null_client.sh-openvpn_current"
+test_name="t_server_null_client.sh-openvpn_current_udp"
 should_pass=0
 get_client_test_result "${test_name}" $should_pass
 
-test_name="t_server_null_client.sh-openvpn_current_fail"
+test_name="t_server_null_client.sh-openvpn_current_tcp"
+should_pass=0
+get_client_test_result "${test_name}" $should_pass
+
+test_name="t_server_null_client.sh-openvpn_current_udp_fail"
 should_pass=1
 get_client_test_result "${test_name}" $should_pass
 
-test_name="t_server_null_client.sh-openvpn_2_6_8"
+test_name="t_server_null_client.sh-openvpn_2_6_8_udp"
+should_pass=0
+get_client_test_result "${test_name}" $should_pass
+
+test_name="t_server_null_client.sh-openvpn_2_6_8_tcp"
 should_pass=0
 get_client_test_result "${test_name}" $should_pass
 
