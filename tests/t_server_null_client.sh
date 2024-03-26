@@ -1,34 +1,42 @@
-#!/bin/sh
+#!/bin/bash
 
 do_client_test() {
-    test_name=$1
-    should_pass=$2
-    log="${test_name}.log"
+    local l_test_name=$1
+    local l_should_pass=$2
+    local l_log="${l_test_name}.log"
+    local l_client_base_opts=$client_base_opts
+    local l_client_proto_opts=$client_proto_opts
+    local l_client_cipher_opts=$client_cipher_opts
+    local l_client_remote_opts=$client_remote_opts
+    local l_client_cert_opts=$client_cert_opts
+    local l_client_connect_opts=$client_connect_opts
+    local l_client_script_opts=$client_script_opts
+    local l_openvpn=$openvpn
 
-    "${openvpn}" \
-        $client_base_opts \
-        $client_proto_opts \
-        $client_cipher_opts \
-        $client_remote_opts \
-        $client_cert_opts \
-        $client_connect_opts \
-        $client_script_opts \
-        --log "${log}"
+    "${l_openvpn}" \
+        $l_client_base_opts \
+        $l_client_proto_opts \
+        $l_client_cipher_opts \
+        $l_client_remote_opts \
+        $l_client_cert_opts \
+        $l_client_connect_opts \
+        $l_client_script_opts \
+        --log "${l_log}"
 
-    grep "Initialization Sequence Completed" "${log}" > /dev/null
-    exit_code=$?
+    grep "Initialization Sequence Completed" "${l_log}" > /dev/null
+    local l_exit_code=$?
 
-    if [ $exit_code -eq 0 ] && [ $should_pass -eq 0 ]; then
-        echo "PASS ${test_name}"
-    elif [ $exit_code -eq 1 ] && [ $should_pass -ne 0 ]; then
-        echo "PASS ${test_name} (test failure)"
-    elif [ $exit_code -eq 0 ] && [ $should_pass -ne 0 ]; then
-        echo "FAIL ${test_name} (test failure)"
-        cat "${log}"
+    if [ $l_exit_code -eq 0 ] && [ $l_should_pass -eq 0 ]; then
+        echo "PASS ${l_test_name}"
+    elif [ $l_exit_code -eq 1 ] && [ $l_should_pass -ne 0 ]; then
+        echo "PASS ${l_test_name} (test failure)"
+    elif [ $l_exit_code -eq 0 ] && [ $l_should_pass -ne 0 ]; then
+        echo "FAIL ${l_test_name} (test failure)"
+        cat "${l_log}"
         retval=1
-    elif [ $exit_code -eq 1 ] && [ $should_pass -eq 0 ]; then
-        echo "FAIL ${test_name}"
-        cat "${log}"
+    elif [ $l_exit_code -eq 1 ] && [ $l_should_pass -eq 0 ]; then
+        echo "FAIL ${l_test_name}"
+        cat "${l_log}"
         retval=1
     fi
 }
