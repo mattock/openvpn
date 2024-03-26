@@ -1,9 +1,11 @@
 #!/bin/bash
 
 do_client_test() {
+
     local l_test_name=$1
     local l_should_pass=$2
     local l_log="${l_test_name}.log"
+    local l_pid="${l_test_name}.pid"
     local l_client_base_opts=$client_base_opts
     local l_client_proto_opts=$client_proto_opts
     local l_client_cipher_opts=$client_cipher_opts
@@ -13,6 +15,9 @@ do_client_test() {
     local l_client_script_opts=$client_script_opts
     local l_openvpn=$openvpn
 
+    # Ensure that old log and pid files are gone
+    rm -f "${l_log}" "${l_pid}"
+
     "${l_openvpn}" \
         $l_client_base_opts \
         $l_client_proto_opts \
@@ -21,6 +26,7 @@ do_client_test() {
         $l_client_cert_opts \
         $l_client_connect_opts \
         $l_client_script_opts \
+        --writepid "${l_pid}" \
         --log "${l_log}"
 
     grep "Initialization Sequence Completed" "${l_log}" > /dev/null
