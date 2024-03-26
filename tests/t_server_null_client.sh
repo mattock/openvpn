@@ -1,9 +1,8 @@
 #!/bin/bash
 
-do_client_test() {
+launch_client() {
 
     local l_test_name=$1
-    local l_should_pass=$2
     local l_log="${l_test_name}.log"
     local l_pid="${l_test_name}.pid"
     local l_client_base_opts=$client_base_opts
@@ -27,7 +26,14 @@ do_client_test() {
         $l_client_connect_opts \
         $l_client_script_opts \
         --writepid "${l_pid}" \
-        --log "${l_log}"
+        --setenv l_pid $l_pid \
+        --log "${l_log}" &
+}
+
+get_client_test_result() {
+    local l_test_name=$1
+    local l_should_pass=$2
+    local l_log="${l_test_name}.log"
 
     grep "Initialization Sequence Completed" "${l_log}" > /dev/null
     local l_exit_code=$?
@@ -69,25 +75,62 @@ client_script_opts="--script-security 2 --up null_client_up.sh"
 # Cache the path current (just-compiled) openvpn
 current_openvpn=$openvpn
 
+test_names=""
+
+# Launch OpenVPN clients in parallel
 test_name="t_server_null_client.sh-openvpn_current"
+test_names="${test_names} ${test_name}"
 openvpn=$current_openvpn
 client_remote_opts="--remote 127.0.0.1 1194 udp"
 client_proto_opts="--proto udp"
-should_succeed=0
-do_client_test "${test_name}" $should_succeed
+launch_client "${test_name}"
 
 test_name="t_server_null_client.sh-openvpn_current_fail"
+test_names="${test_names} ${test_name}"
 openvpn=$current_openvpn
 client_remote_opts="--remote 127.0.0.1 1195 udp"
 client_proto_opts="--proto udp"
-should_succeed=1
-do_client_test "${test_name}" $should_succeed
+launch_client "${test_name}"
 
 test_name="t_server_null_client.sh-openvpn_2_6_8"
+test_names="${test_names} ${test_name}"
 openvpn="/usr/sbin/openvpn"
 client_remote_opts="--remote 127.0.0.1 1194 udp"
 client_proto_opts="--proto udp"
-should_succeed=0
-do_client_test "${test_name}" $should_succeed
+launch_client "${test_name}"
+
+# Wait until tests have finished
+tests_running="yes"
+
+# Wait until all OpenVPN client processes have started up and created their
+# pidfiles
+sleep 1
+
+while [ "${tests_running}" == "yes" ]; do
+    tests_running="no"
+    for t in $test_names; do
+        if [ -f "${t}.pid" ]; then
+            tests_running="yes"
+        fi
+    done
+
+    if [ "${tests_running}" == "yes" ]; then
+        echo "Waiting 1 second for tests to finish"
+	sleep 1
+    fi
+done
+
+# Check test results
+test_name="t_server_null_client.sh-openvpn_current"
+should_pass=0
+get_client_test_result "${test_name}" $should_pass
+
+test_name="t_server_null_client.sh-openvpn_current_fail"
+should_pass=1
+get_client_test_result "${test_name}" $should_pass
+
+test_name="t_server_null_client.sh-openvpn_2_6_8"
+should_pass=0
+get_client_test_result "${test_name}" $should_pass
 
 exit $retval

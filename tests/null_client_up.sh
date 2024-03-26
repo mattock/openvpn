@@ -2,8 +2,9 @@
 #
 # Stop the parent process (openvpn) gracefully after a small delay
 
-# Get parent process id
-MY_PPID=$(ps -o ppid= -C null_client_up.sh)
+# Determine the OpenVPN PID from its pid file. This works reliably even when
+# the OpenVPN process is backgrounded for parallel tests.
+MY_PPID=`cat $l_pid`
 
 # Allow OpenVPN to finish initializing while waiting in the background and then
 # killing the process gracefully.
