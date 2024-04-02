@@ -13,19 +13,7 @@ fi
 
 srcdir="${srcdir:-.}"
 
-export server_id="t_server_null_server-1194_udp"
-export lport="1194"
-export proto="udp"
 $sudo_cmd "${srcdir}/t_server_null_server.sh"
-
-export server_id="t_server_null_server-1195_tcp"
-export lport="1195"
-export proto="tcp"
-$sudo_cmd "${srcdir}/t_server_null_server.sh"
-
-unset server_id
-unset lport
-unset proto
 
 "${srcdir}/t_server_null_client.sh"
 
