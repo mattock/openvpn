@@ -4,14 +4,14 @@ launch_client() {
     local test_name=$1
     local log="${test_name}.log"
     local pid="${test_name}.pid"
-    local openvpn_exec=$2
-    local openvpn_conf=$3
+    local client_exec=$2
+    local client_conf=$3
 
     # Ensure that old log and pid files are gone
     rm -f "${log}" "${pid}"
 
-    "${openvpn_exec}" \
-        $openvpn_conf \
+    "${client_exec}" \
+        $client_conf \
         --writepid "${pid}" \
         --setenv pid $pid \
         --log "${log}" &
@@ -80,11 +80,11 @@ test_names=""
 for SUF in $TEST_RUN_LIST
 do
     eval test_name=\"\$TEST_NAME_$SUF\"
-    eval openvpn_exec=\"\$OPENVPN_EXEC_$SUF\"
-    eval openvpn_conf=\"\$OPENVPN_CONF_$SUF\"
+    eval client_exec=\"\$CLIENT_EXEC_$SUF\"
+    eval client_conf=\"\$CLIENT_CONF_$SUF\"
 
     test_names="${test_names} ${test_name}"
-    launch_client "${test_name}" "${openvpn_exec}" "${openvpn_conf}"
+    launch_client "${test_name}" "${client_exec}" "${client_conf}"
 done
 
 # Wait until all OpenVPN clients have exited
