@@ -1,32 +1,20 @@
 #!/bin/bash
 
 launch_client() {
-    local l_test_name=$1
-    local l_log="${l_test_name}.log"
-    local l_pid="${l_test_name}.pid"
-    local l_client_base_opts=$client_base_opts
-    local l_client_proto_opts=$client_proto_opts
-    local l_client_cipher_opts=$client_cipher_opts
-    local l_client_remote_opts=$client_remote_opts
-    local l_client_cert_opts=$client_cert_opts
-    local l_client_connect_opts=$client_connect_opts
-    local l_client_script_opts=$client_script_opts
-    local l_openvpn=$openvpn
+    local test_name=$1
+    local log="${test_name}.log"
+    local pid="${test_name}.pid"
+    local openvpn_exec=$2
+    local openvpn_conf=$3
 
     # Ensure that old log and pid files are gone
-    rm -f "${l_log}" "${l_pid}"
+    rm -f "${log}" "${pid}"
 
-    "${l_openvpn}" \
-        $l_client_base_opts \
-        $l_client_proto_opts \
-        $l_client_cipher_opts \
-        $l_client_remote_opts \
-        $l_client_cert_opts \
-        $l_client_connect_opts \
-        $l_client_script_opts \
-        --writepid "${l_pid}" \
-        --setenv l_pid $l_pid \
-        --log "${l_log}" &
+    "${openvpn_exec}" \
+        $openvpn_conf \
+        --writepid "${pid}" \
+        --setenv l_pid $pid \
+        --log "${log}" &
 }
 
 wait_for_results() {
@@ -75,88 +63,39 @@ get_client_test_result() {
     fi
 }
 
-srcdir="${srcdir:-.}"
-top_builddir="${top_builddir:-..}"
-openvpn="${openvpn:-${top_builddir}/src/openvpn/openvpn}"
-sample_keys="${sample_keys:-${top_builddir}/sample/sample-keys}"
-ca="${ca:-${sample_keys}/ca.crt}"
-client_cert="${client_cert:-${sample_keys}/client.crt}"
-client_key="${client_key:-${sample_keys}/client.key}"
-ta="${ta:-${sample_keys}/ta.key}"
+
+# Load base tests
+. ./t_server_null_default.rc
+
+# Load additional, local tests, if any
+test -r ./t_server_null.rc && . ./t_server_null.rc
 
 # Return value for the entire test suite. Gets set to 1 if any test fails.
 export retval=0
 
-# Basic settings that don't generally change between tests
-client_base_opts="--client --dev null --ifconfig-noexec --nobind --persist-tun --verb 3"
-client_cipher_opts="--cipher AES-256-CBC"
-client_cert_opts="--remote-cert-tls server --ca "${ca}" --cert "${client_cert}" --key "${client_key}" --tls-auth "${ta}" 1"
-client_connect_opts="--resolv-retry 0 --connect-retry-max 3 --server-poll-timeout 1 --explicit-exit-notify 3"
-client_script_opts="--script-security 2 --up null_client_up.sh"
-
-# Cache the path current (just-compiled) openvpn
-current_openvpn=$openvpn
-
+# We use the list of all test names to determine when all OpenVPN clients have
+# exited and it is safe to check the test results.
 test_names=""
 
-# Launch OpenVPN clients in parallel
-test_name="t_server_null_client.sh-openvpn_current_udp"
-test_names="${test_names} ${test_name}"
-openvpn=$current_openvpn
-client_remote_opts="--remote 127.0.0.1 1194 udp"
-client_proto_opts="--proto udp"
-launch_client "${test_name}"
+for SUF in $TEST_RUN_LIST
+do
+    eval test_name=\"\$TEST_NAME_$SUF\"
+    eval openvpn_exec=\"\$OPENVPN_EXEC_$SUF\"
+    eval openvpn_conf=\"\$OPENVPN_CONF_$SUF\"
 
-test_name="t_server_null_client.sh-openvpn_current_tcp"
-test_names="${test_names} ${test_name}"
-openvpn="/usr/sbin/openvpn"
-client_remote_opts="--remote 127.0.0.1 1195 tcp"
-client_proto_opts="--proto tcp"
-launch_client "${test_name}"
-
-test_name="t_server_null_client.sh-openvpn_2_6_8_udp"
-test_names="${test_names} ${test_name}"
-openvpn="/usr/sbin/openvpn"
-client_remote_opts="--remote 127.0.0.1 1194 udp"
-client_proto_opts="--proto udp"
-launch_client "${test_name}"
-
-test_name="t_server_null_client.sh-openvpn_2_6_8_tcp"
-test_names="${test_names} ${test_name}"
-openvpn="/usr/sbin/openvpn"
-client_remote_opts="--remote 127.0.0.1 1195 tcp"
-client_proto_opts="--proto tcp"
-launch_client "${test_name}"
-
-test_name="t_server_null_client.sh-openvpn_current_udp_fail"
-test_names="${test_names} ${test_name}"
-openvpn=$current_openvpn
-client_remote_opts="--remote 127.0.0.1 11194 udp"
-client_proto_opts="--proto udp"
-launch_client "${test_name}"
+    test_names="${test_names} ${test_name}"
+    launch_client "${test_name}" "${openvpn_exec}" "${openvpn_conf}"
+done
 
 # Wait until all OpenVPN clients have exited
 wait_for_results
 
-# Check test results
-test_name="t_server_null_client.sh-openvpn_current_udp"
-should_pass="yes"
-get_client_test_result "${test_name}" $should_pass
+for SUF in $TEST_RUN_LIST
+do
+    eval test_name=\"\$TEST_NAME_$SUF\"
+    eval should_pass=\"\$SHOULD_PASS_$SUF\"
 
-test_name="t_server_null_client.sh-openvpn_current_tcp"
-should_pass="yes"
-get_client_test_result "${test_name}" $should_pass
-
-test_name="t_server_null_client.sh-openvpn_current_udp_fail"
-should_pass="no"
-get_client_test_result "${test_name}" $should_pass
-
-test_name="t_server_null_client.sh-openvpn_2_6_8_udp"
-should_pass="yes"
-get_client_test_result "${test_name}" $should_pass
-
-test_name="t_server_null_client.sh-openvpn_2_6_8_tcp"
-should_pass="yes"
-get_client_test_result "${test_name}" $should_pass
+    get_client_test_result "${test_name}" $should_pass
+done
 
 exit $retval

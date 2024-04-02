@@ -1,0 +1,44 @@
+srcdir="${srcdir:-.}"
+top_builddir="${top_builddir:-..}"
+openvpn="${openvpn:-${top_builddir}/src/openvpn/openvpn}"
+sample_keys="${sample_keys:-${top_builddir}/sample/sample-keys}"
+ca="${ca:-${sample_keys}/ca.crt}"
+client_cert="${client_cert:-${sample_keys}/client.crt}"
+client_key="${client_key:-${sample_keys}/client.key}"
+ta="${ta:-${sample_keys}/ta.key}"
+
+# Basic settings that don't generally change between tests
+CLIENT_BASE_OPTS="--client --dev null --ifconfig-noexec --nobind --remote-cert-tls server --persist-tun --verb 3 --resolv-retry 0 --connect-retry-max 3 --server-poll-timeout 1 --explicit-exit-notify 3 --script-security 2 --up null_client_up.sh"
+CLIENT_CIPHER_OPTS="--cipher AES-256-CBC"
+CLIENT_CERT_OPTS="--ca "${ca}" --cert "${client_cert}" --key "${client_key}" --tls-auth "${ta}" 1"
+
+# Cache the path current (just-compiled) openvpn
+current_openvpn=$openvpn
+
+TEST_RUN_LIST="1 2 3 4 5"
+OPENVPN_CONF_BASE="${CLIENT_BASE_OPTS} ${CLIENT_CIPHER_OPTS} ${CLIENT_CERT_OPTS}"
+
+TEST_NAME_1="t_server_null_client.sh-openvpn_current_udp"
+SHOULD_PASS_1="yes"
+OPENVPN_EXEC_1="${current_openvpn}"
+OPENVPN_CONF_1="${OPENVPN_CONF_BASE} --remote 127.0.0.1 1194 udp --proto udp"
+
+TEST_NAME_2="t_server_null_client.sh-openvpn_current_tcp"
+SHOULD_PASS_2="yes"
+OPENVPN_EXEC_2="${current_openvpn}"
+OPENVPN_CONF_2="${OPENVPN_CONF_BASE} --remote 127.0.0.1 1195 tcp --proto tcp"
+
+TEST_NAME_3="t_server_null_client.sh-openvpn_2_6_8_udp"
+SHOULD_PASS_3="yes"
+OPENVPN_EXEC_3="/usr/sbin/openvpn"
+OPENVPN_CONF_3="${OPENVPN_CONF_BASE} --remote 127.0.0.1 1194 udp --proto udp"
+
+TEST_NAME_4="t_server_null_client.sh-openvpn_2_6_8_tcp"
+SHOULD_PASS_4="yes"
+OPENVPN_EXEC_4="/usr/sbin/openvpn"
+OPENVPN_CONF_4="${OPENVPN_CONF_BASE} --remote 127.0.0.1 1195 tcp --proto tcp"
+
+TEST_NAME_5="t_server_null_client.sh-openvpn_current_udp_fail"
+SHOULD_PASS_5="no"
+OPENVPN_EXEC_5="${current_openvpn}"
+OPENVPN_CONF_5="${OPENVPN_CONF_BASE} --remote 127.0.0.1 11194 udp --proto udp"
