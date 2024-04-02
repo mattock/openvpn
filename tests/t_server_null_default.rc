@@ -2,11 +2,15 @@ srcdir="${srcdir:-.}"
 top_builddir="${top_builddir:-..}"
 sample_keys="${sample_keys:-${top_builddir}/sample/sample-keys}"
 
+DH="${DH:-${sample_keys}/dh2048.pem}"
 CA="${CA:-${sample_keys}/ca.crt}"
 CLIENT_CERT="${CLIENT_CERT:-${sample_keys}/client.crt}"
 CLIENT_KEY="${CLIENT_KEY:-${sample_keys}/client.key}"
+SERVER_CERT="${SERVER_CERT:-${sample_keys}/server.crt}"
+SERVER_KEY="${server_key:-${sample_keys}/server.key}"
 TA="${TA:-${sample_keys}/ta.key}"
 OPENVPN_EXEC="${OPENVPN_EXEC:-${top_builddir}/src/openvpn/openvpn}"
+MAX_CLIENTS="${MAX_CLIENTS:-10}"
 
 # Basic settings that don't generally change between tests
 CLIENT_BASE_OPTS="--client --dev null --ifconfig-noexec --nobind --remote-cert-tls server --persist-tun --verb 3 --resolv-retry 0 --connect-retry-max 3 --server-poll-timeout 1 --explicit-exit-notify 3 --script-security 2 --up null_client_up.sh"

@@ -5,16 +5,7 @@ if [ "${server_id}" = "" ]; then
     exit 1
 fi
 
-srcdir="${srcdir:-.}"
-top_builddir="${top_builddir:-..}"
-openvpn="${openvpn:-${top_builddir}/src/openvpn/openvpn}"
-sample_keys="${sample_keys:-${top_builddir}/sample/sample-keys}"
-ca="${ca:-${sample_keys}/ca.crt}"
-dh="${dh:-${sample_keys}/dh2048.pem}"
-server_cert="${server_cert:-${sample_keys}/server.crt}"
-server_key="${server_key:-${sample_keys}/server.key}"
-ta="${ta:-${sample_keys}/ta.key}"
-max_clients="${max_clients:-10}"
+. ./t_server_null_default.rc
 
 # Settings that change between server setups
 status_file="${status_file:-${srcdir}/${server_id}.status}"
@@ -23,22 +14,22 @@ client_match="${client_match:-Test-Client}"
 proto="${proto:-udp}"
 lport="${lport:-1194}"
 
-"${openvpn}" \
+"${OPENVPN_EXEC}" \
     --daemon \
     --local 127.0.0.1 \
     --lport "${lport}" \
     --proto "${proto}" \
     --dev tun \
-    --ca "${ca}" \
-    --dh "${dh}" \
-    --cert "${server_cert}" \
-    --key "${server_key}" \
-    --tls-auth "${ta}" 0 \
+    --ca "${CA}" \
+    --dh "${DH}" \
+    --cert "${SERVER_CERT}" \
+    --key "${SERVER_KEY}" \
+    --tls-auth "${TA}" 0 \
     --topology subnet \
     --server 10.29.41.0 255.255.255.0 \
     --keepalive 10 120 \
     --cipher AES-256-CBC \
-    --max-clients $max_clients \
+    --max-clients $MAX_CLIENTS \
     --persist-tun \
     --verb 3 \
     --status "${status_file}" 1 \
