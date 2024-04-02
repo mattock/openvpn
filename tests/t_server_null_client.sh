@@ -13,7 +13,7 @@ launch_client() {
     "${openvpn_exec}" \
         $openvpn_conf \
         --writepid "${pid}" \
-        --setenv l_pid $pid \
+        --setenv pid $pid \
         --log "${log}" &
 }
 
@@ -41,24 +41,24 @@ wait_for_results() {
 }
 
 get_client_test_result() {
-    local l_test_name=$1
-    local l_should_pass=$2
-    local l_log="${l_test_name}.log"
+    local test_name=$1
+    local should_pass=$2
+    local log="${test_name}.log"
 
-    grep "Initialization Sequence Completed" "${l_log}" > /dev/null
-    local l_exit_code=$?
+    grep "Initialization Sequence Completed" "${log}" > /dev/null
+    local exit_code=$?
 
-    if [ $l_exit_code -eq 0 ] && [ "${l_should_pass}" = "yes" ]; then
-        echo "PASS ${l_test_name}"
-    elif [ $l_exit_code -eq 1 ] && [ "${l_should_pass}" = "no" ]; then
-        echo "PASS ${l_test_name} (test failure)"
-    elif [ $l_exit_code -eq 0 ] && [ "${l_should_pass}" = "no" ]; then
-        echo "FAIL ${l_test_name} (test failure)"
-        cat "${l_log}"
+    if [ $exit_code -eq 0 ] && [ "${should_pass}" = "yes" ]; then
+        echo "PASS ${test_name}"
+    elif [ $exit_code -eq 1 ] && [ "${should_pass}" = "no" ]; then
+        echo "PASS ${test_name} (test failure)"
+    elif [ $exit_code -eq 0 ] && [ "${should_pass}" = "no" ]; then
+        echo "FAIL ${test_name} (test failure)"
+        cat "${log}"
         retval=1
-    elif [ $l_exit_code -eq 1 ] && [ "${l_should_pass}" = "yes" ]; then
-        echo "FAIL ${l_test_name}"
-        cat "${l_log}"
+    elif [ $exit_code -eq 1 ] && [ "${should_pass}" = "yes" ]; then
+        echo "FAIL ${test_name}"
+        cat "${log}"
         retval=1
     fi
 }
