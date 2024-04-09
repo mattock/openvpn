@@ -21,8 +21,8 @@ wait_for_results() {
     # Wait until tests have finished
     tests_running="yes"
 
-    # Wait until at least one OpenVPN client process has started an created its
-    # pidfile to prevent exiting prematurely
+    # Wait a bit to allow an OpenVPN client process to create a pidfile to
+    # prevent exiting too early
     sleep 1
 
     while [ "${tests_running}" == "yes" ]; do
@@ -34,7 +34,7 @@ wait_for_results() {
         done
 
         if [ "${tests_running}" == "yes" ]; then
-            echo "Waiting 1 second for tests to finish"
+            echo "Waiting 1 second for clients to exit"
             sleep 1
         fi
     done
