@@ -46,18 +46,21 @@ do
     mgmt_ports="${mgmt_ports} ${mgmt_port}" 
 done
 
-# Wait until no clients are connected to any test server. Wait at least five seconds
-# to avoid killing the servers prematurely.
+# Wait for the first clients to connect
+sleep 2
+
+# Wait until clients are no more, based on the presence of their pid files.
+# Wait at least five seconds to avoid killing the servers prematurely.
 count=0
-while [ $count -lt 5 ]; do
-    if cat $status_files|grep -qE "(${CLIENT_MATCH}|UNDEF)"; then
-	echo "Clients connected, count reset to 0"
+while [ $count -le 1 ]; do
+    ls|grep t_server_null_client.sh*.pid > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo "Clients still connected"
         count=0
         sleep 1
         continue
     else
-	echo "No clients connected, count at ${count}"
-	#cat $status_files
+        echo "No clients connected, count at ${count}"
         ((count++))
         sleep 1
         continue
@@ -76,7 +79,7 @@ done
 # Pidfile-based approach seems unreliable. If it fails once, the game seems to
 # be over.  However, it is still useful as a fallback in case management
 # interface is not available.
-for PID_FILE in $pid_files
-do
-    kill `cat $PID_FILE`
-done
+#for PID_FILE in $pid_files
+#do
+#    kill `cat $PID_FILE`
+#done

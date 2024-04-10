@@ -63,7 +63,6 @@ get_client_test_result() {
     fi
 }
 
-
 # Load base tests
 . ./t_server_null_default.rc
 
