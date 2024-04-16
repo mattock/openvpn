@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Run this stress test as root to avoid sudo authorization from timing out.
 
@@ -32,11 +32,4 @@ while [ $count -lt 100 ]; do
 
     # Wait until the server has probably killed itself due to lack of client activity
     sleep 10
-
-    # If that has failed by this point kill the servers. This avoids multiple test cycles
-    # reusing the same set of servers.
-    #for PID_FILE in $pid_files
-    #do
-    #    kill `cat $PID_FILE`
-    #done
 done
