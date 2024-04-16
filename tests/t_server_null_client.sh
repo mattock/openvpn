@@ -18,7 +18,6 @@ launch_client() {
 }
 
 wait_for_results() {
-    # Wait until tests have finished
     tests_running="yes"
 
     # Wait a bit to allow an OpenVPN client process to create a pidfile to
@@ -34,7 +33,7 @@ wait_for_results() {
         done
 
         if [ "${tests_running}" == "yes" ]; then
-            echo "Waiting 1 second for clients to exit"
+            echo "Clients still running"
             sleep 1
         fi
     done
@@ -63,19 +62,51 @@ get_client_test_result() {
     fi
 }
 
-# Load base tests
+# Load basic/default tests
 . ./t_server_null_default.rc
 
-# Load additional, local tests, if any
+# Load additional local tests, if any
 test -r ./t_server_null.rc && . ./t_server_null.rc
 
 # Return value for the entire test suite. Gets set to 1 if any test fails.
 export retval=0
 
-# We use the list of all test names to determine when all OpenVPN clients have
-# exited and it is safe to check the test results.
-test_names=""
+# Wait until servers are up. This check is based on the presence of processes
+# matching the PIDs in each servers PID files
+count=0
+server_max_wait=15
+while [ $count -lt $server_max_wait ]; do
+    server_pids=""
+    for i in `(set -o posix; set)|grep 'SERVER_NAME_'|cut -d "=" -f 2`; do
+        server_pid=`cat "${i}.pid"`
+        server_pids="${server_pids} ${server_pid}"
+    done
 
+    server_count=`echo ${server_pids}|wc -w`
+    servers_up=`ps --no-headers --pid $server_pids|wc -l`
+
+    echo "OpenVPN test servers up: ${servers_up}/${server_count}"
+
+    if [ $servers_up -ge $server_count ]; then
+        retval=0
+        break
+    else
+        ((count++))
+        sleep 1
+    fi
+
+    if [ $count -eq $server_max_wait ]; then
+        retval=1
+    fi
+done
+
+# Wait a while to let server processes to settle down
+sleep 2
+
+# Launch OpenVPN clients. While at it, construct a list of test names. The list
+# is used later to determine when all OpenVPN clients have exited and it is
+# safe to check the test results.
+test_names=""
 for SUF in $TEST_RUN_LIST
 do
     eval test_name=\"\$TEST_NAME_$SUF\"
@@ -89,6 +120,7 @@ done
 # Wait until all OpenVPN clients have exited
 wait_for_results
 
+# Check test results
 for SUF in $TEST_RUN_LIST
 do
     eval test_name=\"\$TEST_NAME_$SUF\"

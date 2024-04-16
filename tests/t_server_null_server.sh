@@ -17,8 +17,10 @@ launch_server() {
         --explicit-exit-notify 3
 }
 
-# Load default and local configurations
+# Load base/default configuration
 . ./t_server_null_default.rc
+
+# Load local configuration, if any
 test -r ./t_server_null.rc && . ./t_server_null.rc
 
 # Launch test servers
@@ -31,9 +33,13 @@ do
     launch_server "${server_name}" "${server_exec}" "${server_conf}"
 done
 
-# Create a list of status and pid files. The former allows checking "global" status of client
-# connections across --dev null test servers.
-export status_files=""
+# Create a list of all applicable client pid files. It allows checking "global"
+# status of client connections to the --dev null test servers as a whole.
+#
+# Also create a list of server management ports which is used to kill the
+# servers gracefully using the management interface once all clients have
+# disconnected.
+#
 export pid_files=""
 export mgmt_ports=""
 for SUF in $TEST_SERVER_LIST
@@ -41,45 +47,35 @@ do
     eval server_name=\"\$SERVER_NAME_$SUF\"
     eval mgmt_port=\"\$SERVER_MGMT_PORT_$SUF\"
 
-    status_files="${status_files} ${srcdir}/${server_name}.status"
     pid_files="${pid_files} ${srcdir}/${server_name}.pid"
     mgmt_ports="${mgmt_ports} ${mgmt_port}" 
 done
 
-# Wait for the first clients to connect
+# Wait until there are at least some client connections before starting the countdown timer.
 sleep 2
 
 # Wait until clients are no more, based on the presence of their pid files.
 # Wait at least five seconds to avoid killing the servers prematurely.
 count=0
-while [ $count -le 1 ]; do
-    ls|grep t_server_null_client.sh*.pid > /dev/null 2>&1
+maxcount=3
+while [ $count -le $maxcount ]; do
+    ls t_server_null_client.sh*.pid > /dev/null 2>&1
+
     if [ $? -eq 0 ]; then
-        echo "Clients still connected"
+        echo "Clients connected"
         count=0
         sleep 1
-        continue
     else
-        echo "No clients connected, count at ${count}"
+        echo "No clients connected"
         ((count++))
         sleep 1
-        continue
     fi
+    echo "Count: $count"
 done
 
-echo "All clients disconnected from all servers"
-
-#sleep 300
+echo "All clients have disconnected from all servers"
 
 for MGMT_PORT in $mgmt_ports
 do
     echo "signal SIGTERM"|nc 127.0.0.1 $MGMT_PORT
 done
-
-# Pidfile-based approach seems unreliable. If it fails once, the game seems to
-# be over.  However, it is still useful as a fallback in case management
-# interface is not available.
-#for PID_FILE in $pid_files
-#do
-#    kill `cat $PID_FILE`
-#done
