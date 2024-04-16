@@ -51,13 +51,10 @@ do
     mgmt_ports="${mgmt_ports} ${mgmt_port}" 
 done
 
-# Wait until there are at least some client connections before starting the countdown timer.
-sleep 2
-
 # Wait until clients are no more, based on the presence of their pid files.
-# Wait at least five seconds to avoid killing the servers prematurely.
+# Based on practical testing we have to wait at least four seconds to avoid
 count=0
-maxcount=3
+maxcount=4
 while [ $count -le $maxcount ]; do
     ls t_server_null_client.sh*.pid > /dev/null 2>&1
 
