@@ -39,17 +39,17 @@ server and client combinations quickly.
 
 The tests suite is launched via "make check":
 
-| make check
-|   t_server_null.sh
-|     t_server_null_server.sh
-|       Launches the compiled OpenVPN server instances as root (if necessary
-|       with sudo or su) in the background. The servers are killed using their
-|       management interface once all clients have exited.
-|     t_server_null_client.sh
-|       Waits until servers have launched. Then launch all clients, wait for
-|       them to exit and then check test results by parsing the client log
-|       files. Each client kills itself after some delay using an "--up"
-|       script.
+* make check
+
+  * t_server_null.sh
+
+    * t_server_null_server.sh
+
+      * Launches the compiled OpenVPN server instances as root (if necessary with sudo or su) in the background. The servers are killed using their management interface once all clients have exited.
+
+    * t_server_null_client.sh
+
+      * Waits until servers have launched. Then launch all clients, wait for them to exit and then check test results by parsing the client log files. Each client kills itself after some delay using an "--up" script.
 
 Note that "make check" moves on once *t_server_null_client.sh* has exited. At
 that point *t_server_null_server.sh* is still running, because it exists only
