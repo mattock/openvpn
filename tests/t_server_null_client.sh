@@ -101,7 +101,7 @@ while [ $count -lt $server_max_wait ]; do
 done
 
 # Wait a while to let server processes to settle down
-sleep 2
+sleep 1
 
 # Launch OpenVPN clients. While at it, construct a list of test names. The list
 # is used later to determine when all OpenVPN clients have exited and it is
