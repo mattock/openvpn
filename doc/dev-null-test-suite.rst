@@ -1,0 +1,102 @@
+Notes for the --dev null test suite
+===================================
+
+Introduction
+------------
+
+The *--dev null test suite* is primary targeted at testing client connections
+to the "just compiled" version of OpenVPN. The name is derived from "null"
+device type in OpenVPN. In particular, when *--dev null --ifconfig-noexec* is
+used in OpenVPN client configuration one does not need to run OpenVPN with root
+privileges because interface, routing, etc. configuration is not done at all.
+This is still enough to ensure that the OpenVPN client can connect to a server
+instance.
+
+The main features of the test suite:
+
+* Parallelized for fairly high performance
+* Mostly operating-system agnostic
+* Should be POSIX shell compliant but uses Bash now
+* Uses the sample certificates and keys
+* Supports running multiple servers and clients
+* Supports running servers directly as root and with sudo
+* Supports using different OpenVPN client versions
+
+  * The "current" (just compiled) version
+  * Any other OpenVPN versions that is present on the filesystem
+
+* Support testing for success as well as failure
+* Test cases (client configurations) and server setups (server configurations) are stored in a configuration file, i.e. data and code have been separated
+* Configuration file format is nearly identical to t_client.rc configuration
+* Supports a set of default tests, overriding default test settings and adding local tests
+
+Technical implementation
+------------------------
+
+The test suite is completely parallelized to allow running a large number of
+server and client combinations quickly.
+
+The tests suite is launched via "make check":
+
+| make check
+|   t_server_null.sh
+|     t_server_null_server.sh
+|       Launches the compiled OpenVPN server instances as root (if necessary
+|       with sudo or su) in the background. The servers are killed using their
+|       management interface once all clients have exited.
+|     t_server_null_client.sh
+|       Waits until servers have launched. Then launch all clients, wait for
+|       them to exit and then check test results by parsing the client log
+|       files. Each client kills itself after some delay using an "--up"
+|       script.
+
+Note that "make check" moves on once *t_server_null_client.sh* has exited. At
+that point *t_server_null_server.sh* is still running, because it exists only
+after waiting a few seconds for more client connections to potentially appear.
+This is a feature and not a bug, but means that launching "make check" runs too
+quickly might cause test failures or unexpected behavior such as leftover
+OpenVPN server processes.
+
+Configuration
+-------------
+
+The test suite reads its configuration from two files:
+
+* *tests/t_server_null_defaults.rc:* default test configuration that should work on any system
+* *tests/t_server_null.rc (optional):* a local configuration file; can be used to add additional tests or override settings from the default test configuration
+
+The configuration syntax is very similar to *t_client.rc*. New server instances can be
+defined like this::
+
+  SERVER_NAME_5="t_server_null_server-11195_udp"
+  SERVER_MGMT_PORT_5="11195"
+  SERVER_EXEC_5="${SERVER_EXEC}"
+  SERVER_CONF_5="${SERVER_CONF_BASE} --lport 11195 --proto udp --management 127.0.0.1 ${SERVER_MGMT_PORT_5}"
+
+In this case the server instance identifier is **5**. Variables such as
+*SERVER_EXEC* and *SERVER_CONF_BASE* are defined in
+*t_server_null_defaults.rc*. To enable this server instance add it to the
+server list::
+
+  TEST_SERVER_LIST="1 2 5"
+
+The client instances are added similarly::
+
+  TEST_NAME_9="t_server_null_client.sh-openvpn_current_udp_custom"
+  SHOULD_PASS_9="yes"
+  CLIENT_EXEC_9="${CLIENT_EXEC}"
+  CLIENT_CONF_9="${CLIENT_CONF_BASE} --remote 127.0.0.1 1194 udp --proto udp"
+
+In this case the test identifier is **9**. *CLIENT_EXEC* and *CLIENT_CONF_BASE*
+are defined in *t_server_null_defaults.rc*. The variable *SHOULD_PASS*
+determines that this particular test is supposed to succeed and not fail.  To
+enable this client instance add it to the test list::
+
+  TEST_RUN_LIST="1 2 5 9"
+
+Regarding privilege escalation
+------------------------------
+
+Very long test suites should run as the root user to avoid sudo authorizations
+from timing out and causing test failures. This is particularly important when
+stress-testing the test suite.
