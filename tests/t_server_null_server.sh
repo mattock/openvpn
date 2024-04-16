@@ -1,5 +1,5 @@
-#!/bin/sh
-#
+#!/usr/bin/env bash
+
 launch_server() {
     local server_name=$1
     local server_exec=$2

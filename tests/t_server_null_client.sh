@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 launch_client() {
     local test_name=$1

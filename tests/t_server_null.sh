@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 if [ `id -un` == "root" ]; then
     use_sudo="no"
