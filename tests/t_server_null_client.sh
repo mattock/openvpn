@@ -83,7 +83,7 @@ while [ $count -lt $server_max_wait ]; do
     done
 
     server_count=`echo ${server_pids}|wc -w`
-    servers_up=`ps --no-headers --pid $server_pids|wc -l`
+    servers_up=`ps -p $server_pids|sed '1d'|wc -l`
 
     echo "OpenVPN test servers up: ${servers_up}/${server_count}"
 
