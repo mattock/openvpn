@@ -16,6 +16,7 @@ The main features of the test suite:
 
 * Parallelized for fairly high performance
 * Mostly operating-system agnostic
+* Tested on Fedora Linux 38 and FreeBSD 14
 * Should be POSIX shell compliant but uses Bash now
 * Uses the sample certificates and keys
 * Supports running multiple servers and clients
