@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 #
+TSERVER_NULL_SKIP_RC="${TSERVER_NULL_SKIP_RC:-77}"
+
+if ! [ -r "./t_server_null.rc" ] ; then
+    echo "$0: cannot find './t_server_null.rc. SKIPPING TEST.'" >&2
+    exit "${TSERVER_NULL_SKIP_RC}"
+fi
+
 if [ `id -un` == "root" ]; then
     use_sudo="no"
 else

@@ -64,7 +64,7 @@ Configuration
 The test suite reads its configuration from two files:
 
 * *tests/t_server_null_defaults.rc:* default test configuration that should work on any system
-* *tests/t_server_null.rc (optional):* a local configuration file; can be used to add additional tests or override settings from the default test configuration
+* *tests/t_server_null.rc:* a local configuration file; can be used to add additional tests or override settings from the default test configuration. Must be present or tests will be skipped, but can be an empty file.
 
 The configuration syntax is very similar to *t_client.rc*. New server instances can be
 defined like this::
