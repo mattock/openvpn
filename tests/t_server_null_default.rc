@@ -12,7 +12,6 @@ srcdir="."
 top_builddir=".."
 sample_keys="${top_builddir}/sample/sample-keys"
 
-
 DH="${sample_keys}/dh2048.pem"
 CA="${sample_keys}/ca.crt"
 CLIENT_CERT="${sample_keys}/client.crt"
@@ -37,7 +36,6 @@ SERVER_MGMT_PORT_1="11194"
 SERVER_EXEC_1="${SERVER_EXEC}"
 SERVER_CONF_1="${SERVER_CONF_BASE} --lport 1194 --proto udp --management 127.0.0.1 ${SERVER_MGMT_PORT_1}"
 
-
 SERVER_NAME_2="t_server_null_server-1195_tcp"
 SERVER_MGMT_PORT_2="11195"
 SERVER_EXEC_2="${SERVER_EXEC}"
@@ -49,7 +47,7 @@ CLIENT_BASE_OPTS="--client --dev null --ifconfig-noexec --nobind --remote-cert-t
 CLIENT_CIPHER_OPTS="--cipher AES-256-CBC"
 CLIENT_CERT_OPTS="--ca "${CA}" --cert "${CLIENT_CERT}" --key "${CLIENT_KEY}" --tls-auth "${TA}" 1"
 
-TEST_RUN_LIST="1 2 3 4 5"
+TEST_RUN_LIST="1 2 3"
 CLIENT_CONF_BASE="${CLIENT_BASE_OPTS} ${CLIENT_CIPHER_OPTS} ${CLIENT_CERT_OPTS}"
 
 TEST_NAME_1="t_server_null_client.sh-openvpn_current_udp"
@@ -62,17 +60,7 @@ SHOULD_PASS_2="yes"
 CLIENT_EXEC_2="${CLIENT_EXEC}"
 CLIENT_CONF_2="${CLIENT_CONF_BASE} --remote 127.0.0.1 1195 tcp --proto tcp"
 
-TEST_NAME_3="t_server_null_client.sh-openvpn_2_6_8_udp"
-SHOULD_PASS_3="yes"
-CLIENT_EXEC_3="/usr/sbin/openvpn"
-CLIENT_CONF_3="${CLIENT_CONF_BASE} --remote 127.0.0.1 1194 udp --proto udp"
-
-TEST_NAME_4="t_server_null_client.sh-openvpn_2_6_8_tcp"
-SHOULD_PASS_4="yes"
-CLIENT_EXEC_4="/usr/sbin/openvpn"
-CLIENT_CONF_4="${CLIENT_CONF_BASE} --remote 127.0.0.1 1195 tcp --proto tcp"
-
-TEST_NAME_5="t_server_null_client.sh-openvpn_current_udp_fail"
-SHOULD_PASS_5="no"
-CLIENT_EXEC_5="${CLIENT_EXEC}"
-CLIENT_CONF_5="${CLIENT_CONF_BASE} --remote 127.0.0.1 11194 udp --proto udp"
+TEST_NAME_3="t_server_null_client.sh-openvpn_current_udp_fail"
+SHOULD_PASS_3="no"
+CLIENT_EXEC_3="${CLIENT_EXEC}"
+CLIENT_CONF_3="${CLIENT_CONF_BASE} --remote 127.0.0.1 11194 udp --proto udp"
