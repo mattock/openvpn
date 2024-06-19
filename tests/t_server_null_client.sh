@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
 launch_client() {
     test_name=$1
