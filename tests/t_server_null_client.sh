@@ -82,6 +82,9 @@ while [ $count -lt $server_max_wait ]; do
     # We need to trim single-quotes because some shells return quoted values
     # and some don't. Using "set -o posix" which would resolve this problem is
     # not supported in all shells.
+    #
+    # While inactive server configurations may get checked they won't increase
+    # the active server count as the processes won't be running.
     for i in `set|grep 'SERVER_NAME_'|cut -d "=" -f 2|tr -d "[\']"`; do
         server_pid=$(cat $i.pid 2> /dev/null)
         if ps -p $server_pid > /dev/null 2>&1; then
