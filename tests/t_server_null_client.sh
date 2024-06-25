@@ -76,7 +76,7 @@ export retval=0
 count=0
 server_max_wait=15
 while [ $count -lt $server_max_wait ]; do
-    server_pids=""
+    servers_up=0
     server_count=$(echo $TEST_SERVER_LIST|wc -w)
 
     # We need to trim single-quotes because some shells return quoted values
@@ -84,10 +84,10 @@ while [ $count -lt $server_max_wait ]; do
     # not supported in all shells.
     for i in `set|grep 'SERVER_NAME_'|cut -d "=" -f 2|tr -d "[\']"`; do
         server_pid=$(cat $i.pid 2> /dev/null)
-        server_pids="${server_pids} ${server_pid}"
+        if ps -p $server_pid > /dev/null 2>&1; then
+            servers_up=$(( $servers_up + 1 ))
+        fi
     done
-
-    servers_up=$(ps -p $server_pids 2>/dev/null|sed '1d'|wc -l)
 
     echo "OpenVPN test servers up: ${servers_up}/${server_count}"
 
