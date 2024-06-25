@@ -101,6 +101,7 @@ while [ $count -lt $server_max_wait ]; do
 
     if [ $count -eq $server_max_wait ]; then
         retval=1
+        exit $retval
     fi
 done
 
