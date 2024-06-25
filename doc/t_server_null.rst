@@ -43,6 +43,12 @@ Running the test suite requires the following:
   * run as root
   * a privilege escalation tool (sudo, doas, su) and the permission to become root
 
+If you use "doas" you should enable nopass feature in */etc/doas.conf*. For
+example to allow users in the *wheel* group to run commands without a password
+prompt::
+
+    permit persist keepenv :wheel
+
 Technical implementation
 ------------------------
 
