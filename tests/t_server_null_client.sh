@@ -77,7 +77,7 @@ count=0
 server_max_wait=15
 while [ $count -lt $server_max_wait ]; do
     server_pids=""
-    server_count=$(set|grep 'SERVER_NAME_'|wc -l)
+    server_count=$(echo $TEST_SERVER_LIST|wc -w)
 
     # We need to trim single-quotes because some shells return quoted values
     # and some don't. Using "set -o posix" which would resolve this problem is
