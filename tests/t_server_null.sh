@@ -67,4 +67,10 @@ retval=$?
 # pre and post ifconfig output does not match.
 wait
 
-exit $retval
+. ./t_server_null_default.rc
+
+if [ -e $SERVER_KILL_FAIL_FILE ]; then
+    exit 1
+else
+    exit $retval
+fi
