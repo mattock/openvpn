@@ -87,6 +87,7 @@ do
         continue
     fi
 
+    # Attempt to kill the OpenVPN server gracefully with SIGTERM
     if [ -z "${RUN_SUDO}" ]; then
         $KILL_EXEC "${SERVER_PID}"
     else
@@ -102,7 +103,13 @@ do
         sleep 0.2
     done
 
+    # If server is still up send a SIGKILL
     if [ $count -ge $maxcount ]; then
-        echo "WARNING: could not kill server with pid ${SERVER_PID}!"
+        if [ -z "${RUN_SUDO}" ]; then
+            $KILL_EXEC -9 "${SERVER_PID}"
+        else
+            $RUN_SUDO $KILL_EXEC -9 "${SERVER_PID}"
+        fi
+        echo "WARNING: had to send SIGKILL to server with pid ${SERVER_PID}!"
     fi
 done
