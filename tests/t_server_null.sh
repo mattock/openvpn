@@ -56,10 +56,15 @@ else
 fi
 
 srcdir="${srcdir:-.}"
+export t_server_null_logdir=t_server_null-`hostname`-`date +%Y%m%d-%H%M%S`
+
+# Create directory for server and client logs
+mkdir $t_server_null_logdir
 
 "${srcdir}/t_server_null_server.sh" &
 "${srcdir}/t_server_null_client.sh"
 retval=$?
+
 
 # When running make jobs in parallel ("make -j<x> check") we need to ensure
 # that this script does not exit before all --dev null servers are dead and

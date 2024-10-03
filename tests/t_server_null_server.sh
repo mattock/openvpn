@@ -13,7 +13,7 @@ launch_server() {
         "${server_exec}" \
          $server_conf \
          --status "${status}" 1 \
-         --log "${log}" \
+         --log "${t_server_null_logdir}/${log}" \
          --writepid "${pid}" \
          --explicit-exit-notify 3
     else
@@ -21,7 +21,7 @@ launch_server() {
         $RUN_SUDO "${server_exec}" \
                    $server_conf \
                    --status "${status}" 1 \
-                   --log "${log}" \
+                   --log "${t_server_null_logdir}/${log}" \
                    --writepid "${pid}" \
                    --explicit-exit-notify 3
     fi
