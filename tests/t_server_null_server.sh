@@ -88,9 +88,9 @@ do
     fi
 
     if [ -z "${RUN_SUDO}" ]; then
-        $KILL_EXEC "${SERVER_PID}"
+        $KILL_EXEC -15 "${SERVER_PID}" || $KILL_EXEC -9 "${SERVER_PID}"
     else
-        $RUN_SUDO $KILL_EXEC "${SERVER_PID}"
+        $RUN_SUDO $KILL_EXEC -15 "${SERVER_PID}" || $RUN_SUDO $KILL_EXEC -9 "${SERVER_PID}"
     fi
 
     count=0
