@@ -1,5 +1,17 @@
 #!/bin/sh
 
+should_run_test() {
+    test_name="$1"
+
+    if echo "$test_name"|grep -q _lwip; then
+        if [ "$has_lwipovpn" = "no" ]; then
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
 launch_client() {
     test_name=$1
     log="${test_name}.log"
@@ -13,8 +25,45 @@ launch_client() {
     "${client_exec}" \
         $client_conf \
         --writepid "${pid}" \
-        --setenv pid $pid \
+        --setenv pid "$pid" \
+        --setenv test_name "$test_name" \
         --log "${t_server_null_logdir}/${log}" &
+}
+
+ping_lwip_clients() {
+    if [ "$has_lwipovpn" = "yes" ]; then
+        lwip_client_count=$(echo "$lwip_test_names"|wc -w|tr -d " ")
+    else
+        lwip_client_count=0
+    fi
+
+    if [ $lwip_client_count -eq 0 ]; then
+        return 0
+    fi
+
+    count=0
+    maxcount=10
+    while [ $count -le $maxcount ]; do
+        lwip_client_ips=$(cat ./*.ips 2>/dev/null|wc -w|tr -d " ")
+        if [ $lwip_client_ips -lt $lwip_client_count ]; then
+            echo "Waiting for LWIP clients to start up ($count/$maxcount)"
+            count=$(( count + 1))
+            sleep 1
+        else
+            echo "$lwip_client_ips/$lwip_client_count LWIP clients up"
+            break
+        fi
+    done
+
+    LWIP_CLIENTS=$(cat ./*.ips 2>/dev/null)
+    if [ "$LWIP_CLIENTS" ]; then
+        if fping -c 5 $LWIP_CLIENTS; then
+            echo "PASS: lwipovpn client ping tests passed"
+        else
+            echo "FAIL: pinging one or more lwipovpn client IP addresses failed"
+            retval=1
+        fi
+    fi
 }
 
 wait_for_results() {
@@ -77,7 +126,7 @@ count=0
 server_max_wait=15
 while [ $count -lt $server_max_wait ]; do
     servers_up=0
-    server_count=$(echo $TEST_SERVER_LIST|wc -w)
+    server_count=$(echo "$TEST_SERVER_LIST"|wc -w|tr -d " ")
 
     # We need to trim single-quotes because some shells return quoted values
     # and some don't. Using "set -o posix" which would resolve this problem is
@@ -85,8 +134,8 @@ while [ $count -lt $server_max_wait ]; do
     #
     # While inactive server configurations may get checked they won't increase
     # the active server count as the processes won't be running.
-    for i in `set|grep 'SERVER_NAME_'|cut -d "=" -f 2|tr -d "[\']"`; do
-        server_pid=$(cat $i.pid 2> /dev/null)
+    for i in $(set|grep 'SERVER_NAME_'|cut -d "=" -f 2|tr -d "[\']"); do
+        server_pid=$(cat "$i.pid" 2> /dev/null)
         if [ -z "$server_pid" ] ; then
             continue
         fi
@@ -111,6 +160,18 @@ while [ $count -lt $server_max_wait ]; do
     fi
 done
 
+# Check for presence of the lwipovpn executable
+if test -r "$LWIPOVPN_PATH"; then
+    has_lwipovpn="yes"
+else
+    has_lwipovpn="no"
+    echo "WARNING: lwipovpn executable is missing: lwip tests will be skipped"
+fi
+
+# Remove existing LWIP client IP files. This is to avoid pinging non-existent
+# IP addresses when tests are disabled.
+rm -f ./*.ips
+
 # Wait a while to let server processes to settle down
 sleep 1
 
@@ -118,6 +179,7 @@ sleep 1
 # is used later to determine when all OpenVPN clients have exited and it is
 # safe to check the test results.
 test_names=""
+lwip_test_names=""
 for SUF in $TEST_RUN_LIST
 do
     eval test_name=\"\$TEST_NAME_$SUF\"
@@ -125,8 +187,17 @@ do
     eval client_conf=\"\$CLIENT_CONF_$SUF\"
 
     test_names="${test_names} ${test_name}"
-    (launch_client "${test_name}" "${client_exec}" "${client_conf}")
+
+    if echo "$test_name"|grep -q _lwip; then
+        lwip_test_names="${lwip_test_names} ${test_name}"
+    fi
+
+    if should_run_test "$test_name"; then
+        (launch_client "${test_name}" "${client_exec}" "${client_conf}")
+    fi
 done
+
+ping_lwip_clients
 
 # Wait until all OpenVPN clients have exited
 (wait_for_results)
@@ -137,7 +208,9 @@ do
     eval test_name=\"\$TEST_NAME_$SUF\"
     eval should_pass=\"\$SHOULD_PASS_$SUF\"
 
-    get_client_test_result "${test_name}" "${should_pass}"
+    if should_run_test "$test_name"; then
+        get_client_test_result "${test_name}" "${should_pass}"
+    fi
 done
 
 exit $retval
