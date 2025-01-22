@@ -170,7 +170,7 @@ fi
 
 # Remove existing LWIP client IP files. This is to avoid pinging non-existent
 # IP addresses when tests are disabled.
-$RUN_SUDO rm -f ./*.ips
+rm -f ./*.ips
 
 # Wait a while to let server processes to settle down
 sleep 1
