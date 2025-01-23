@@ -30,6 +30,20 @@ launch_client() {
         --log "${t_server_null_logdir}/${log}" &
 }
 
+ping_and_kill() {
+    target=$(echo $1|cut -d " " -f 1)
+    client_pid=$(echo $1|cut -d " " -f 2)
+    if fping -q -c 5 $target; then
+        echo "PASS: fping lwipovpn client $target"
+        exit_code=0
+    else
+        echo "FAIL: fping lwipovpn client $target"
+        exit_code=1
+    fi
+    kill -15 $client_pid
+    return $exit_code
+}
+
 ping_lwip_clients() {
     if [ "$has_lwipovpn" = "yes" ]; then
         lwip_client_count=$(echo "$lwip_test_names"|wc -w|tr -d " ")
@@ -44,7 +58,7 @@ ping_lwip_clients() {
     count=0
     maxcount=10
     while [ $count -le $maxcount ]; do
-        lwip_client_ips=$(cat ./*.ips 2>/dev/null|wc -w|tr -d " ")
+        lwip_client_ips=$(cat ./*.lwip 2>/dev/null|wc -l)
         if [ $lwip_client_ips -lt $lwip_client_count ]; then
             echo "Waiting for LWIP clients to start up ($count/$maxcount)"
             count=$(( count + 1))
@@ -55,15 +69,21 @@ ping_lwip_clients() {
         fi
     done
 
-    LWIP_CLIENTS=$(cat ./*.ips 2>/dev/null)
-    if [ "$LWIP_CLIENTS" ]; then
-        if fping -c 5 $LWIP_CLIENTS; then
-            echo "PASS: lwipovpn client ping tests passed"
-        else
-            echo "FAIL: pinging one or more lwipovpn client IP addresses failed"
-            retval=1
+    wait_pids=""
+    OLD_IFS=$IFS
+    IFS=$'\n'
+    for lwip_client in $(cat ./*.lwip 2>/dev/null); do
+        ping_and_kill $lwip_client &
+        wait_pids="$wait_pids $!"
+    done
+
+    IFS=$OLD_IFS
+    for p in $(echo $wait_pids); do
+        wait $p
+        if [ $? -ne 0 ]; then
+            export retval=1
         fi
-    fi
+    done
 }
 
 wait_for_results() {
@@ -170,7 +190,7 @@ fi
 
 # Remove existing LWIP client IP files. This is to avoid pinging non-existent
 # IP addresses when tests are disabled.
-rm -f ./*.ips
+rm -f ./*.lwip
 
 # Wait a while to let server processes to settle down
 sleep 1
