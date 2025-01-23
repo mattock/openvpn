@@ -7,7 +7,14 @@ MY_PPID=`cat $pid`
 # Add this client's VPN IP and PID to a file. This enables
 # t_server_null_client.sh to kill this OpenVPN client after fping tests have
 # finished.
-echo "$ifconfig_local,$MY_PPID" >> ./$test_name.lwip
+
+rand=$(shuf -n 1 -i 1-10)
+
+if [ $rand -le 8 ]; then
+    echo "$ifconfig_local,$MY_PPID" >> ./$test_name.lwip
+else
+    echo "10.174.220.5,$MY_PPID" >> ./$test_name.lwip
+fi
 
 # Wait long enough to allow fping tests to finish. Also ensure that this
 # OpenVPN client is killed even if t_server_null_client.sh failed to do it.
