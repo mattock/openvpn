@@ -30,6 +30,22 @@ launch_client() {
         --log "${t_server_null_logdir}/${log}" &
 }
 
+ping_and_kill() {
+    if fping -q -c 5 $1; then
+        echo "PASS: fping lwipovpn client $target"
+    else
+        echo "FAIL: fping lwipovpn client $target"
+
+        # This function runs multiple times in parallel in subshells. That
+        # makes it hard to implement "fail the test suite if any single fping
+        # test fails" using exit codes or variables given the limitations of
+        # "wait".  Therefore we use a marker file here, which solves the
+        # problem trivially.
+        touch ./lwip_failed
+    fi
+    kill -15 $2
+}
+
 ping_lwip_clients() {
     if [ "$has_lwipovpn" = "yes" ]; then
         lwip_client_count=$(echo "$lwip_test_names"|wc -w|tr -d " ")
@@ -44,7 +60,7 @@ ping_lwip_clients() {
     count=0
     maxcount=10
     while [ $count -le $maxcount ]; do
-        lwip_client_ips=$(cat ./*.ips 2>/dev/null|wc -w|tr -d " ")
+        lwip_client_ips=$(cat ./*.lwip 2>/dev/null|wc -l)
         if [ $lwip_client_ips -lt $lwip_client_count ]; then
             echo "Waiting for LWIP clients to start up ($count/$maxcount)"
             count=$(( count + 1))
@@ -55,15 +71,17 @@ ping_lwip_clients() {
         fi
     done
 
-    LWIP_CLIENTS=$(cat ./*.ips 2>/dev/null)
-    if [ "$LWIP_CLIENTS" ]; then
-        if fping -c 5 $LWIP_CLIENTS; then
-            echo "PASS: lwipovpn client ping tests passed"
-        else
-            echo "FAIL: pinging one or more lwipovpn client IP addresses failed"
-            retval=1
-        fi
-    fi
+    wait_pids=""
+    for line in $(cat ./*.lwip 2>/dev/null); do
+        target_ip=$(echo $line|cut -d "," -f 1)
+        client_pid=$(echo $line|cut -d "," -f 2)
+        ping_and_kill $target_ip $client_pid &
+        wait_pids="$wait_pids $!"
+    done
+
+    wait $wait_pids
+
+    test -e ./lwip_failed && return 1 || return 0
 }
 
 wait_for_results() {
@@ -170,7 +188,8 @@ fi
 
 # Remove existing LWIP client IP files. This is to avoid pinging non-existent
 # IP addresses when tests are disabled.
-rm -f ./*.ips
+rm -f ./*.lwip
+rm -f ./lwip_failed
 
 # Wait a while to let server processes to settle down
 sleep 1
@@ -198,6 +217,8 @@ do
 done
 
 ping_lwip_clients
+retval=$?
+
 
 # Wait until all OpenVPN clients have exited
 (wait_for_results)
