@@ -11,20 +11,31 @@ launch_server() {
     # Allow reading this file even umask values are strict
     touch "$log"
 
-    if [ -z "${RUN_SUDO}" ]; then
-        "${server_exec}" \
-         $server_conf \
-         --status "${status}" 1 \
-         --log "${log}" \
-         --writepid "${pid}" \
-         --explicit-exit-notify 3
-    else
+    # Try to launch the server daemonized
+    $RUN_SUDO "${server_exec}" \
+               $server_conf \
+               --status "${status}" 1 \
+               --log "${log}" \
+               --writepid "${pid}" \
+               --explicit-exit-notify 3 \
+               --daemon
+
+    sleep 1
+
+    # With --daemon OpenVPN's exit code is always 0, even when it failed to
+    # start. Therefore we check the pid-file and if it is missing or is empty
+    # we run OpenVPN without --daemon and --log to catch the underlying error.
+    # By backgrounding the process in the shell we ensure that we don't block
+    # the test run in the (unlikely) case that OpenVPN startup actually
+    # succeeds.
+    if ! [ -r "$pid" ] || [ -z "$pid" ]; then
+        echo "ERROR: failed to start server $server_name"
+
         $RUN_SUDO "${server_exec}" \
                    $server_conf \
                    --status "${status}" 1 \
-                   --log "${log}" \
                    --writepid "${pid}" \
-                   --explicit-exit-notify 3
+                   --explicit-exit-notify 3 &
     fi
 }
 
